@@ -8,7 +8,7 @@
 ## Installation:
 - Find `your_documents_folder/maya/version/scripts`
 
-- Place BO6Tools.py inside of its
+- Place `BO6Tools.py` inside of it
 
 - Find or create `userSetup.mel`
 
