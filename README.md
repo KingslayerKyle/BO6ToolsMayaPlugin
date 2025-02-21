@@ -5,6 +5,16 @@
 - Models must be exported in the **Cast model format**.
 - https://github.com/dtzxporter/cast/releases
 
+## Installation:
+- Find `your_documents_folder/maya/version/scripts`
+
+- Place BO6Tools.py inside of its
+
+- Find or create `userSetup.mel`
+
+- Add the following to it:
+`python("import BO6Tools");`
+
 ## What does this plugin do?
 This plugin separates a mesh into individual parts based on its vertex colors.
 
