@@ -10,7 +10,7 @@
 
 - Place `BO6Tools.py` inside of it
 
-- Find or create `userSetup.mel`
+- Find or create `userSetup.mel` in the same directory
 
 - Add the following to it:
 `python("import BO6Tools");`
