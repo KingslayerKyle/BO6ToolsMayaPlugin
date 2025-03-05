@@ -23,6 +23,48 @@ def error( message ):
 def confirm_dialog( message ):
     cmds.confirmDialog( title = "Confirmation", message = message )
 
+def checkbox_dialog( callback ):
+    # Close existing window if open
+    if cmds.window( "checkboxDialog", exists = True ):
+        cmds.deleteUI( "checkboxDialog" )
+
+    # Create window
+    window = cmds.window( "checkboxDialog", title = "Choose which vertex colors to separate", widthHeight = ( 400, 100 ) )
+    cmds.columnLayout( adjustableColumn = True )
+
+    # Create checkboxes
+    checkbox1 = cmds.checkBox( label = "red", value = False )
+    checkbox2 = cmds.checkBox( label = "green", value = False )
+    checkbox3 = cmds.checkBox( label = "blue", value = False )
+
+    # Button Function
+    def on_ok():
+        selected_colors = []
+
+        # Collect selected checkboxes
+        if cmds.checkBox( checkbox1, query = True, value = True ):
+            selected_colors.append( "red" )
+
+        if cmds.checkBox( checkbox2, query = True, value = True ):
+            selected_colors.append( "green" )
+
+        if cmds.checkBox( checkbox3, query = True, value = True ):
+            selected_colors.append( "blue" )
+
+        # Close window
+        cmds.deleteUI( window )
+
+        # Pass selected colors to the callback function
+        callback( selected_colors )
+
+    # Buttons
+    cmds.rowLayout( numberOfColumns = 2 )
+    cmds.button( label = "OK", command = lambda x: on_ok() )
+    cmds.button( label = "Cancel", command = lambda x: cmds.deleteUI( window ) )
+    cmds.setParent( ".." )
+
+    cmds.showWindow( window )
+
 def set_attribute( node, attribute, value ):
     if cmds.objExists( node ):
         if cmds.objExists( node + "." + attribute ):
@@ -57,9 +99,12 @@ def delete_faces( faces_to_select ):
     # Delete them
     mel.eval( "doDelete" )
 
-def create_new_meshes_per_vertex_color( mesh, vertex_colors ):
+def create_new_meshes_per_vertex_color( mesh, vertex_colors, selected_colors ):
     # Create a new mesh for each vertex color
     for color in vertex_colors:
+        if color not in selected_colors:
+            continue
+
         # Duplicate it
         duplicate = cmds.duplicate( mesh )[0]
 
@@ -124,7 +169,7 @@ def set_new_material_with_suffix( mesh, suffix ):
     # Assign the new shading group to the shape
     cmds.sets( shape, edit = True, forceElement = new_shading_group )
 
-def split_mesh_by_vertex_colors():
+def split_mesh_by_vertex_colors( selected_colors ):
     # Make sure something is selected
     if len( get_selection() ) < 1:
         error( "Nothing is selected!" )
@@ -137,7 +182,7 @@ def split_mesh_by_vertex_colors():
     vertex_colors = ["red", "green", "blue"]
 
     # Create new meshes per vertex color
-    create_new_meshes_per_vertex_color( selected_mesh, vertex_colors )
+    create_new_meshes_per_vertex_color( selected_mesh, vertex_colors, selected_colors )
 
     # Set skincluster attributes
     set_skincluster_attributes()
@@ -148,6 +193,9 @@ def split_mesh_by_vertex_colors():
 
     # Extract the faces for each vertex color
     for index, element in enumerate( vertex_colors ):
+        if element not in selected_colors:
+            continue
+
         # Select mesh
         cmds.select( selected_mesh )
 
@@ -208,7 +256,8 @@ def menu_items():
 
     # Utilities
     cmds.menuItem( parent = main_menu, divider = True, dividerLabel = "Utilities" )
-    cmds.menuItem( parent = main_menu, label = "Separate selected mesh", command = lambda x: split_mesh_by_vertex_colors() )
+    cmds.menuItem( parent = main_menu, label = "Separate selected mesh (by vertex colors)", command = lambda x: split_mesh_by_vertex_colors( ["red", "green", "blue"] ) )
+    cmds.menuItem( parent = main_menu, label = "Separate selected mesh (choose vertex colors)", command = lambda x: checkbox_dialog( split_mesh_by_vertex_colors ) )
 
     # Information
     cmds.menuItem( parent = main_menu, divider = True, dividerLabel = "Information" )
